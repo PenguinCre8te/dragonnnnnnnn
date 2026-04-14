@@ -1,0 +1,27 @@
+[gd_scene load_steps=3 format=3 uid="uid://ejfhaieandd2"]
+
+[ext_resource type="Script" uid="uid://bgrrcx8vuxpvf" path="res://control.gd" id="1_0xm2m"]
+[ext_resource type="PackedScene" uid="uid://27tg3ny8da5u" path="res://dragon.tscn" id="2_h2yge"]
+
+[node name="main" type="Node3D"]
+script = ExtResource("1_0xm2m")
+
+[node name="dragon_finished" parent="." instance=ExtResource("2_h2yge")]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.483573, 0, 0.875304, 0, 1, 0, -0.875304, 0, 0.483573, 5.39668, 1.56505, 2.1045)
+
+[node name="Control" type="Control" parent="Camera3D"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1156.0
+offset_bottom = 643.0
+
+[node name="Button" type="Button" parent="Camera3D/Control"]
+layout_mode = 0
+offset_left = 496.0
+offset_top = 523.0
+offset_right = 642.0
+offset_bottom = 592.0
+
+[connection signal="pressed" from="Camera3D/Control/Button" to="." method="_on_button_pressed"]
