@@ -1,27 +1,42 @@
-[gd_scene load_steps=3 format=3 uid="uid://ejfhaieandd2"]
+[gd_scene format=3 uid="uid://ejfhaieandd2"]
 
 [ext_resource type="Script" uid="uid://bgrrcx8vuxpvf" path="res://control.gd" id="1_0xm2m"]
+[ext_resource type="PackedScene" uid="uid://cbl816oa0mvtu" path="res://cartoon_easter_bunny.glb" id="2_1bvp3"]
 [ext_resource type="PackedScene" uid="uid://27tg3ny8da5u" path="res://dragon.tscn" id="2_h2yge"]
+[ext_resource type="PackedScene" uid="uid://l0ak5hecblg2" path="res://sleigh.tscn" id="4_1bvp3"]
 
-[node name="main" type="Node3D"]
+[node name="main" type="Node3D" unique_id=342930294]
 script = ExtResource("1_0xm2m")
 
-[node name="dragon_finished" parent="." instance=ExtResource("2_h2yge")]
-
-[node name="Camera3D" type="Camera3D" parent="."]
+[node name="Camera3D" type="Camera3D" parent="." unique_id=929667455]
 transform = Transform3D(0.483573, 0, 0.875304, 0, 1, 0, -0.875304, 0, 0.483573, 5.39668, 1.56505, 2.1045)
 
-[node name="Control" type="Control" parent="Camera3D"]
+[node name="Control" type="Control" parent="Camera3D" unique_id=1661042306]
 layout_mode = 3
 anchors_preset = 0
-offset_right = 1156.0
-offset_bottom = 643.0
+offset_right = 40.0
+offset_bottom = 40.0
 
-[node name="Button" type="Button" parent="Camera3D/Control"]
+[node name="Label" type="Label" parent="Camera3D/Control" unique_id=1078904684]
 layout_mode = 0
-offset_left = 496.0
-offset_top = 523.0
-offset_right = 642.0
-offset_bottom = 592.0
+offset_top = 625.0
+offset_right = 112.0
+offset_bottom = 648.0
+text = "not connected"
 
-[connection signal="pressed" from="Camera3D/Control/Button" to="." method="_on_button_pressed"]
+[node name="models" type="Node" parent="." unique_id=211180683]
+
+[node name="bunny" parent="models" unique_id=1025406556 instance=ExtResource("2_1bvp3")]
+transform = Transform3D(0.8760654, 0.20884863, 1.7857468, -0.07095148, 1.9889292, -0.19780353, -1.7965176, 0.023293741, 0.87862515, 3.3335671, 1.4568202, 0.83579755)
+
+[node name="dragon" parent="models" unique_id=1481789517 instance=ExtResource("2_h2yge")]
+transform = Transform3D(0.9311132, 0, 0.36473054, 0, 1, 0, -0.36473054, 0, 0.9311132, 0.78017104, 1.2108634, 1.1709123)
+
+[node name="sleigh" parent="models" unique_id=420890996 instance=ExtResource("4_1bvp3")]
+transform = Transform3D(0.86654854, 0, -0.49909285, 0, 1, 0, 0.49909285, 0, 0.86654854, 3.418084, 0.587561, 1.8554875)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=440902815]
+transform = Transform3D(0.4671275, 0, 0.88418996, 0, 1, 0, -0.88418996, 0, 0.4671275, 5.2180953, 1.3530962, 1.9308136)
+light_energy = 2.833
+light_indirect_energy = 0.0
+light_volumetric_fog_energy = 0.0
