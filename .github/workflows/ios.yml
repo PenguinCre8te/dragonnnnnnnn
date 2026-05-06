@@ -60,15 +60,18 @@ jobs:
           cd build/ios/export
           mkdir -p Payload
           
-          # Find the .app inside the DerivedData folder we just created
+          # Find the .app inside DerivedData
           APP_PATH=$(find ./DerivedData -name "*.app" -type d -print -quit)
           echo "Found App at: $APP_PATH"
           
           cp -r "$APP_PATH" Payload/
-          zip -r ../../dragon_sideload.ipa Payload/
+          
+          # Zip it into the ROOT of the workspace for easy finding
+          zip -r ../../../dragon_sideload.ipa Payload/
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: dragon-ios-sideload
-          path: dragon_sideload.ipa
+          # Use the explicit path from the workspace root
+          path: ${{ github.workspace }}/dragon_sideload.ipa
