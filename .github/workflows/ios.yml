@@ -9,7 +9,7 @@ jobs:
   build-ios:
     runs-on: macos-latest
     env:
-      GODOT_VERSION: "4.3" # Update this to match your project version
+      GODOT_VERSION: "4.6" # Update this to match your project version
       EXPORT_PRESET: "iOS"
 
     steps:
