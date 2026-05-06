@@ -1,0 +1,77 @@
+name: "Build iOS (Sideload)"
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    env:
+      GODOT_VERSION: "4.6" # Update if using 4.6
+      EXPORT_PRESET: "iOS"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Setup Godot
+        run: |
+          wget https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}-stable/Godot_v${{ env.GODOT_VERSION }}-stable_macos.universal.zip
+          unzip Godot_v${{ env.GODOT_VERSION }}-stable_macos.universal.zip
+          APP_NAME=$(find . -maxdepth 1 -name "*.app" -print -quit)
+          mv "$APP_NAME" /Applications/Godot.app
+          
+          mkdir -p ~/Library/Application\ Support/Godot/export_templates/${{ env.GODOT_VERSION }}.stable
+          wget https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}-stable/Godot_v${{ env.GODOT_VERSION }}-stable_export_templates.tpz
+          unzip Godot_v${{ env.GODOT_VERSION }}-stable_export_templates.tpz
+          mv templates/* ~/Library/Application\ Support/Godot/export_templates/${{ env.GODOT_VERSION }}.stable/
+
+      - name: Godot Export (Generate Project)
+        run: |
+          mkdir -p build/ios/export
+          GODOT_EXEC=$(find /Applications/Godot.app/Contents/MacOS -type f -maxdepth 1 -print -quit)
+          
+          # We use || true because we KNOW Godot will return an error code 
+          # when it fails to sign. We just need it to dump the files.
+          $GODOT_EXEC --headless --path . --export-debug "${{ env.EXPORT_PRESET }}" build/ios/export/project.ipa || true
+
+      - name: Manual Xcode Build (Unsigned)
+        run: |
+          cd build/ios/export
+          
+          # We manually run the build since Godot's internal 'archive' failed
+          xcodebuild build \
+            -project project.xcodeproj \
+            -scheme project \
+            -configuration Debug \
+            -sdk iphoneos \
+            -derivedDataPath ./DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES
+
+      - name: Package IPA
+        run: |
+          cd build/ios/export
+          mkdir -p Payload
+          
+          # Find the .app inside DerivedData
+          APP_PATH=$(find ./DerivedData -name "*.app" -type d -print -quit)
+          echo "Found App at: $APP_PATH"
+          
+          cp -r "$APP_PATH" Payload/
+          
+          # Zip it into the ROOT of the workspace for easy finding
+          zip -r ../../../dragon_sideload.ipa Payload/
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dragon-ios-sideload
+          # Use the explicit path from the workspace root
+          path: ${{ github.workspace }}/dragon_sideload.ipa
