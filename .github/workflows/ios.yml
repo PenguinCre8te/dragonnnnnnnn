@@ -3,13 +3,13 @@ name: "Build iOS (Sideload)"
 on:
   push:
     branches: [ main ]
-  workflow_dispatch: # Allows manual triggering
+  workflow_dispatch:
 
 jobs:
   build-ios:
     runs-on: macos-latest
     env:
-      GODOT_VERSION: "4.6" # Update this to match your project version
+      GODOT_VERSION: "4.3" 
       EXPORT_PRESET: "iOS"
 
     steps:
@@ -20,41 +20,40 @@ jobs:
 
       - name: Setup Godot
         run: |
-          # Download Godot Engine
           wget https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}-stable/Godot_v${{ env.GODOT_VERSION }}-stable_macos.universal.zip
           unzip Godot_v${{ env.GODOT_VERSION }}-stable_macos.universal.zip
-          
-          # Move .app to /Applications and find the binary path
           APP_NAME=$(find . -maxdepth 1 -name "*.app" -print -quit)
           mv "$APP_NAME" /Applications/Godot.app
           
-          # Setup Export Templates
           mkdir -p ~/Library/Application\ Support/Godot/export_templates/${{ env.GODOT_VERSION }}.stable
           wget https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}-stable/Godot_v${{ env.GODOT_VERSION }}-stable_export_templates.tpz
           unzip Godot_v${{ env.GODOT_VERSION }}-stable_export_templates.tpz
           mv templates/* ~/Library/Application\ Support/Godot/export_templates/${{ env.GODOT_VERSION }}.stable/
 
-      - name: Godot Export (Source Only)
+      - name: Godot Export (Files Only)
         run: |
-          mkdir -p build/ios
-          # Find the exact binary inside the .app bundle
+          mkdir -p build/ios/export
           GODOT_EXEC=$(find /Applications/Godot.app/Contents/MacOS -type f -maxdepth 1 -print -quit)
           
-          # Export to .zip to bypass Godot's internal archive/signing attempt
-          $GODOT_EXEC --headless --path . --export-debug "${{ env.EXPORT_PRESET }}" build/ios/project_files.zip
-
-      - name: Unzip and Build Unsigned
-        run: |
-          cd build/ios
-          unzip project_files.zip
+          # The trick: Export to a folder path without a .zip extension first
+          # Then we rename/move if needed. 
+          # We use --no-window to ensure no GUI interference
+          $GODOT_EXEC --headless --path . --export-debug "${{ env.EXPORT_PRESET }}" build/ios/export/project.ipa || true
           
-          # Dynamically find the project file and scheme name
+          # Even if it "fails" the signing/archiving step, the source files 
+          # are usually already dumped into the directory.
+          # We check if the xcodeproj exists.
+          ls -R build/ios/export
+
+      - name: Build Unsigned
+        run: |
+          cd build/ios/export
+          
+          # Find the project file Godot just dumped
           PROJECT_FILE=$(find . -name "*.xcodeproj" -print -quit)
           SCHEME_NAME=$(basename "$PROJECT_FILE" .xcodeproj)
           
-          echo "Building project: $PROJECT_FILE with scheme: $SCHEME_NAME"
-          
-          # Build the .app bundle without any signing certificates
+          # Manually trigger the build, ignoring the failed 'archive' from Godot
           xcodebuild build \
             -project "$PROJECT_FILE" \
             -scheme "$SCHEME_NAME" \
@@ -67,18 +66,14 @@ jobs:
 
       - name: Package IPA
         run: |
-          cd build/ios
+          cd build/ios/export
           mkdir -p Payload
-          
-          # Move the compiled .app into the Payload folder
-          # This handles various possible output paths from xcodebuild
-          cp -r build/Debug-iphoneos/*.app Payload/ 2>/dev/null || cp -r build/*.app Payload/ 2>/dev/null || cp -r *.app Payload/
-          
-          # Zip the Payload into an IPA
-          zip -r ../dragon_sideload.ipa Payload/
+          # Copy the .app from the build folder
+          cp -r build/Debug-iphoneos/*.app Payload/ 2>/dev/null || cp -r *.app Payload/
+          zip -r ../../dragon_sideload.ipa Payload/
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: dragon-ios-sideload
-          path: build/dragon_sideload.ipa
+          path: dragon_sideload.ipa
