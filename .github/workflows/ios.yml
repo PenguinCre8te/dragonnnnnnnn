@@ -16,28 +16,18 @@ jobs:
         with:
           lfs: true
 
-      - name: Setup Godot
-        run: |
-          wget https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}-stable/Godot_v${{ env.GODOT_VERSION }}-stable_macos.universal.zip
-          unzip Godot_v${{ env.GODOT_VERSION }}-stable_macos.universal.zip
-          mv Godot.app /Applications/Godot.app
-          
-          # Setup Export Templates
-          mkdir -p ~/Library/Application\ Support/Godot/export_templates/${{ env.GODOT_VERSION }}.stable
-          wget https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}-stable/Godot_v${{ env.GODOT_VERSION }}-stable_export_templates.tpz
-          unzip Godot_v${{ env.GODOT_VERSION }}-stable_export_templates.tpz
-          mv templates/* ~/Library/Application\ Support/Godot/export_templates/${{ env.GODOT_VERSION }}.stable/
-
-      - name: Export Xcode Project
+      - name: Godot Export (Files Only)
         run: |
           mkdir -p build/ios
-          # This exports the .xcodeproj folder to build/ios
-          /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --export-debug "${{ env.EXPORT_PRESET }}" build/ios/game.xcodeproj
+          # Exporting to a directory/project, not an .ipa, prevents the signing check
+          /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --export-debug "${{ env.EXPORT_PRESET }}" build/ios/xcode_project
 
-      - name: Build IPA (Ad-Hoc/Unsigned)
+      - name: Build Unsigned App with xcodebuild
         run: |
+          # Navigate to where Godot dropped the Xcode files
           cd build/ios
-          # Use xcodebuild to create the binary without needing a signing identity
+          
+          # Force Xcode to ignore all signing and provisioning requirements
           xcodebuild build \
             -project game.xcodeproj \
             -scheme "game" \
@@ -45,15 +35,19 @@ jobs:
             -sdk iphoneos \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
+            CODE_SIGN_IDENTITY="" \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES
 
-          # Create a dummy Payload folder to wrap it into an .ipa format
+      - name: Package for Sideloading
+        run: |
+          cd build/ios
           mkdir -p Payload
-          cp -r build/Debug-iphoneos/game.app Payload/
-          zip -r ../game_sideload.ipa Payload/
+          # Move the compiled .app into the Payload folder
+          cp -r build/Release-iphoneos/game.app Payload/ 2>/dev/null || cp -r build/Debug-iphoneos/game.app Payload/
+          zip -r ../dragon_sideload.ipa Payload/
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ios-sideload-package
-          path: build/game_sideload.ipa
+          name: dragon-ios-sideload
+          path: build/dragon_sideload.ipa
