@@ -33,7 +33,7 @@ transform = Transform3D(0.8760654, 0.20884863, 1.7857468, -0.07095148, 1.9889292
 transform = Transform3D(0.9311132, 0, 0.36473054, 0, 1, 0, -0.36473054, 0, 0.9311132, 0.78017104, 1.2108634, 1.1709123)
 
 [node name="sleigh" parent="models" unique_id=420890996 instance=ExtResource("4_1bvp3")]
-transform = Transform3D(0.86654854, 0, -0.49909285, 0, 1, 0, 0.49909285, 0, 0.86654854, 3.418084, 0.587561, 1.8554875)
+transform = Transform3D(0.95320344, 0, -0.5490022, 0, 1.1, 0, 0.5490022, 0, 0.95320344, 3.3328376, 0.587561, 1.8692669)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=440902815]
 transform = Transform3D(0.4671275, 0, 0.88418996, 0, 1, 0, -0.88418996, 0, 0.4671275, 5.2180953, 1.3530962, 1.9308136)
