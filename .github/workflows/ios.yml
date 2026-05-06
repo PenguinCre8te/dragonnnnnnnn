@@ -16,12 +16,31 @@ jobs:
         with:
           lfs: true
 
+      - name: Setup Godot
+        run: |
+                # Download Godot
+                wget https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}-stable/Godot_v${{ env.GODOT_VERSION }}-stable_macos.universal.zip
+                unzip Godot_v${{ env.GODOT_VERSION }}-stable_macos.universal.zip
+                
+                # Find the .app folder and move it to a predictable location
+                APP_NAME=$(find . -maxdepth 1 -name "*.app" -print -quit)
+                mv "$APP_NAME" /Applications/Godot.app
+                
+                # Setup Export Templates
+                mkdir -p ~/Library/Application\ Support/Godot/export_templates/${{ env.GODOT_VERSION }}.stable
+                wget https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}-stable/Godot_v${{ env.GODOT_VERSION }}-stable_export_templates.tpz
+                unzip Godot_v${{ env.GODOT_VERSION }}-stable_export_templates.tpz
+                mv templates/* ~/Library/Application\ Support/Godot/export_templates/${{ env.GODOT_VERSION }}.stable/
+
       - name: Godot Export (Files Only)
         run: |
           mkdir -p build/ios
-          # Exporting to a directory/project, not an .ipa, prevents the signing check
-          /Applications/Godot.app/Contents/MacOS/Godot --headless --path . --export-debug "${{ env.EXPORT_PRESET }}" build/ios/xcode_project
-
+          # Use 'find' to get the exact binary path inside the app bundle
+          GODOT_EXEC=$(find /Applications/Godot.app/Contents/MacOS -type f -maxdepth 1 -print -quit)
+          
+          # We export to a folder name, NOT a .ipa or .xcodeproj filename
+          # This tells Godot to just dump the Xcode project files
+          $GODOT_EXEC --headless --path . --export-debug "${{ env.EXPORT_PRESET }}" build/ios/
       - name: Build Unsigned App with xcodebuild
         run: |
           # Navigate to where Godot dropped the Xcode files
