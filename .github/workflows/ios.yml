@@ -9,7 +9,7 @@ jobs:
   build-ios:
     runs-on: macos-latest
     env:
-      GODOT_VERSION: "4.3" 
+      GODOT_VERSION: "4.6" # Update if using 4.6
       EXPORT_PRESET: "iOS"
 
     steps:
@@ -30,35 +30,26 @@ jobs:
           unzip Godot_v${{ env.GODOT_VERSION }}-stable_export_templates.tpz
           mv templates/* ~/Library/Application\ Support/Godot/export_templates/${{ env.GODOT_VERSION }}.stable/
 
-      - name: Godot Export (Files Only)
+      - name: Godot Export (Generate Project)
         run: |
           mkdir -p build/ios/export
           GODOT_EXEC=$(find /Applications/Godot.app/Contents/MacOS -type f -maxdepth 1 -print -quit)
           
-          # The trick: Export to a folder path without a .zip extension first
-          # Then we rename/move if needed. 
-          # We use --no-window to ensure no GUI interference
+          # We use || true because we KNOW Godot will return an error code 
+          # when it fails to sign. We just need it to dump the files.
           $GODOT_EXEC --headless --path . --export-debug "${{ env.EXPORT_PRESET }}" build/ios/export/project.ipa || true
-          
-          # Even if it "fails" the signing/archiving step, the source files 
-          # are usually already dumped into the directory.
-          # We check if the xcodeproj exists.
-          ls -R build/ios/export
 
-      - name: Build Unsigned
+      - name: Manual Xcode Build (Unsigned)
         run: |
           cd build/ios/export
           
-          # Find the project file Godot just dumped
-          PROJECT_FILE=$(find . -name "*.xcodeproj" -print -quit)
-          SCHEME_NAME=$(basename "$PROJECT_FILE" .xcodeproj)
-          
-          # Manually trigger the build, ignoring the failed 'archive' from Godot
+          # We manually run the build since Godot's internal 'archive' failed
           xcodebuild build \
-            -project "$PROJECT_FILE" \
-            -scheme "$SCHEME_NAME" \
+            -project project.xcodeproj \
+            -scheme project \
             -configuration Debug \
             -sdk iphoneos \
+            -derivedDataPath ./DerivedData \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
@@ -68,8 +59,12 @@ jobs:
         run: |
           cd build/ios/export
           mkdir -p Payload
-          # Copy the .app from the build folder
-          cp -r build/Debug-iphoneos/*.app Payload/ 2>/dev/null || cp -r *.app Payload/
+          
+          # Find the .app inside the DerivedData folder we just created
+          APP_PATH=$(find ./DerivedData -name "*.app" -type d -print -quit)
+          echo "Found App at: $APP_PATH"
+          
+          cp -r "$APP_PATH" Payload/
           zip -r ../../dragon_sideload.ipa Payload/
 
       - name: Upload Artifact
