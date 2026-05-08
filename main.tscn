@@ -22,6 +22,7 @@ layout_mode = 0
 offset_top = 625.0
 offset_right = 112.0
 offset_bottom = 648.0
+mouse_filter = 0
 text = "not connected"
 
 [node name="models" type="Node" parent="." unique_id=211180683]
@@ -40,3 +41,5 @@ transform = Transform3D(0.4671275, 0, 0.88418996, 0, 1, 0, -0.88418996, 0, 0.467
 light_energy = 2.833
 light_indirect_energy = 0.0
 light_volumetric_fog_energy = 0.0
+
+[connection signal="gui_input" from="Camera3D/Control/Label" to="." method="_on_label_gui_input"]

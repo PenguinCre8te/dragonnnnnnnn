@@ -69,5 +69,9 @@ func _handle_message(json_string: String):
 		if data.has("change"):
 			show_only_model(data["change"])
 
-func manualtrig() -> void:
-	dragon.hi()
+func _on_label_gui_input(event: InputEvent) -> void:
+	# Check if the event is a mouse button click
+	if event is InputEventMouseButton:
+		# Check if it was the left mouse button AND it was just pressed (not released)
+		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+			dragon.hi()
