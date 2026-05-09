@@ -16,9 +16,9 @@ func hi():
 		active_tween.kill()
 	active_tween = create_tween()
 	animation_player.play("hi")
-	bg.volume_db = -40
-	if not gong.playing:
-		gong.play()
+	# bg.volume_db = -40
+	# if not gong.playing:
+		# gong.play()
 	active_tween.tween_property(anim_tree, "parameters/Blend2/blend_amount", MIX_STRENGTH, 0.5)
 	# Hold
 	active_tween.tween_interval(5.8)
