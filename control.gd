@@ -5,17 +5,18 @@ extends Node
 @onready var sleighanim: AnimationPlayer = $models/sleigh/AnimationPlayer
 @onready var dragon: Node3D = $models/dragon
 @onready var label: Label = $Camera3D/Control/Label
+@onready var sleigh: Node3D = $models/sleigh
 
 var socket = WebSocketPeer.new()
 var url = "ws://192.168.4.1:81"
 
 func show_only_model(target_name: String):
 	if target_name == "sleigh":
-		sleighanim.get_animation("Armature_002|running_Object_9").loop_mode = Animation.LOOP_LINEAR
-		sleighanim.play("Armature_002|running_Object_9")
+		sleigh.start()
+		dragon.stop()
 	if target_name == "dragon":
-		dragonanim.get_animation("flying").loop_mode = Animation.LOOP_LINEAR
-		dragonanim.play("flying")
+		dragon.start()
+		sleigh.stop()
 		
 	for child in models.get_children():
 		child.visible = (child.name == target_name)

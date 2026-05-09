@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://ejfhaieandd2"]
 
 [ext_resource type="Script" uid="uid://bgrrcx8vuxpvf" path="res://control.gd" id="1_0xm2m"]
-[ext_resource type="PackedScene" uid="uid://cbl816oa0mvtu" path="res://cartoon_easter_bunny.glb" id="2_1bvp3"]
 [ext_resource type="PackedScene" uid="uid://27tg3ny8da5u" path="res://dragon.tscn" id="2_h2yge"]
 [ext_resource type="PackedScene" uid="uid://l0ak5hecblg2" path="res://sleigh.tscn" id="4_1bvp3"]
 
@@ -26,9 +25,6 @@ mouse_filter = 0
 text = "not connected"
 
 [node name="models" type="Node" parent="." unique_id=211180683]
-
-[node name="bunny" parent="models" unique_id=1025406556 instance=ExtResource("2_1bvp3")]
-transform = Transform3D(0.8760654, 0.20884863, 1.7857468, -0.07095148, 1.9889292, -0.19780353, -1.7965176, 0.023293741, 0.87862515, 3.3335671, 1.4568202, 0.83579755)
 
 [node name="dragon" parent="models" unique_id=1481789517 instance=ExtResource("2_h2yge")]
 transform = Transform3D(0.9311132, 0, 0.36473054, 0, 1, 0, -0.36473054, 0, 0.9311132, 0.78017104, 1.2108634, 1.1709123)
