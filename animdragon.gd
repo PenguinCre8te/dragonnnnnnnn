@@ -21,7 +21,7 @@ func hi():
 	# Hold
 	active_tween.tween_interval(5.8)
 	active_tween.tween_property(anim_tree, "parameters/Blend2/blend_amount", 0.0, 0.5)
-	bg.volume_db = -10
+	bg.volume_db = -5
 
 func start():
 	bg.play()
